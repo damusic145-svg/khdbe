@@ -1,0 +1,50 @@
+name: Build Windows Installer (AI_Khmer_Dubber_Pro_Setup.exe)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Download FFmpeg & FFprobe Windows binaries
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "ffmpeg.zip"
+          Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg_extract"
+          $binDir = Get-ChildItem -Path "ffmpeg_extract" -Recurse -Directory -Filter "bin" | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path "ffmpeg\bin" | Out-Null
+          Copy-Item "$($binDir.FullName)\ffmpeg.exe" "ffmpeg\bin\ffmpeg.exe"
+          Copy-Item "$($binDir.FullName)\ffprobe.exe" "ffmpeg\bin\ffprobe.exe"
+
+      - name: Build Windows executable with PyInstaller
+        run: |
+          pyinstaller --clean --noconfirm build_windows.spec
+
+      - name: Install Inno Setup & Build AI_Khmer_Dubber_Pro_Setup.exe
+        shell: pwsh
+        run: |
+          choco install innosetup -y
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "installer\AI_Khmer_Dubber_Pro.iss"
+
+      - name: Upload AI_Khmer_Dubber_Pro_Setup.exe Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI_Khmer_Dubber_Pro_Setup
+          path: dist_installer/AI_Khmer_Dubber_Pro_Setup.exe

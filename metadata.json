@@ -1,0 +1,8 @@
+{
+  "name": "Remix AI Khmer Dubber Pro",
+  "description": "Automatic AI video dubbing studio converting multilingual videos into expressive, synchronized Khmer-dubbed MP4 videos with speaker diarization, emotion acting, and Windows 10/11 desktop packaging.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
